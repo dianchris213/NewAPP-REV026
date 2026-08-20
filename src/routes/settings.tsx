@@ -529,6 +529,52 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
     announce(copy.fundSourceRenamed, true);
   };
 
+  // Stable row callbacks: FundSourceRow is memoized, so identity-stable
+  // handlers keep re-renders scoped to the row that actually changed.
+  const commitRenameRef = useRef(commitRename);
+  commitRenameRef.current = commitRename;
+  const usageRef = useRef(walletUsage);
+  usageRef.current = walletUsage;
+  const inUseMessageRef = useRef(copy.fundSourceInUse);
+  inUseMessageRef.current = copy.fundSourceInUse;
+
+  const startRename = useCallback((id: string, current: string) => {
+    setEditingId(id);
+    setEditingName(current);
+    setRowError(null);
+  }, []);
+
+  const cancelRename = useCallback(() => {
+    setEditingId(null);
+    setRowError(null);
+  }, []);
+
+  const handleCommitRename = useCallback((id: string) => {
+    void commitRenameRef.current(id);
+  }, []);
+
+  const requestDelete = useCallback((id: string) => {
+    setRowError(null);
+    if (usageRef.current(id) > 0) {
+      const message = inUseMessageRef.current;
+      setRowError({ id, message });
+      setStatus(message);
+      toast.error(message);
+      return;
+    }
+    setConfirmId(id);
+  }, []);
+
+  // A failed load must be announced loudly (toast + inline alert), once per
+  // failure, and must never be confused with "no fund sources yet".
+  useEffect(() => {
+    if (!hydrated || !walletLoadError) return;
+    toast.error(copy.fundSourceLoadFailed, { description: copy.fundSourceLoadFailedHint });
+    setStatus(copy.fundSourceLoadFailed);
+  }, [hydrated, walletLoadError, copy.fundSourceLoadFailed, copy.fundSourceLoadFailedHint]);
+
+
+
   const remove = async (id: string) => {
     if (walletPending.byId[id]) return;
     const target = wallets.find((w) => w.id === id);
