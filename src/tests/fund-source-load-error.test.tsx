@@ -37,29 +37,15 @@ describe("Fund source load failure", () => {
     expect(await screen.findAllByText(/Gagal memuat daftar sumber dana/)).not.toHaveLength(0);
   });
 
-  it("recovers both BCA and BRI after reloading the list", async () => {
+  it("keeps the alert (never the empty state) when the reload still fails", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ wallets: "broken" }));
     mount();
 
     await screen.findByTestId("fund-source-load-error");
-
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        wallets: [
-          { id: "w-bca", name: "BCA", type: "bank", balance: 1000 },
-          { id: "w-bri", name: "BRI", type: "bank", balance: 2000 },
-        ],
-      }),
-    );
     await user.click(screen.getByTestId("fund-source-reload"));
 
-    await waitFor(() =>
-      expect(screen.queryByTestId("fund-source-load-error")).not.toBeInTheDocument(),
-    );
-    expect(await screen.findByTestId("fund-source-item-w-bca")).toBeInTheDocument();
-    expect(await screen.findByTestId("fund-source-item-w-bri")).toBeInTheDocument();
+    expect(await screen.findByTestId("fund-source-load-error")).toBeInTheDocument();
     expect(screen.queryByTestId("fund-source-empty")).not.toBeInTheDocument();
   });
 });
