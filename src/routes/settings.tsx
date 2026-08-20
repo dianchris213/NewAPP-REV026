@@ -736,6 +736,30 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
           <div className="mt-4 rounded-2xl bg-surface-container px-4 py-2">
             <ListSkeleton rows={3} label={copy.loadingFundSources} testId="fund-source-skeleton" />
           </div>
+        ) : walletLoadError ? (
+          // Load failure is NOT an empty list: never render the empty state
+          // here, or the user would think their fund sources were deleted.
+          <div
+            role="alert"
+            data-testid="fund-source-load-error"
+            className="mt-4 flex flex-col items-start gap-2 rounded-2xl border border-error/30 bg-error/10 px-4 py-4"
+          >
+            <span className="flex items-center gap-2 text-[13px] font-bold text-error">
+              <Icon name="error" className="text-[18px]" aria-hidden="true" />
+              {copy.fundSourceLoadFailed}
+            </span>
+            <span className="text-[11px] text-on-surface-variant/80">
+              {copy.fundSourceLoadFailedHint}
+            </span>
+            <button
+              type="button"
+              data-testid="fund-source-reload"
+              onClick={reloadWallets}
+              className="mt-1 rounded-full border border-outline-variant/30 bg-surface-container px-4 py-2 text-[12px] font-bold text-on-surface focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              {copy.retryLoadFundSources}
+            </button>
+          </div>
         ) : (
           <ul
             aria-label={copy.fundSources}
@@ -743,140 +767,27 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
             className="mt-4 list-none rounded-2xl bg-surface-container px-4 py-1"
           >
             {list.length ? (
-              list.map((w, index) => {
-                const used = walletUsage(w.id);
-                const editing = editingId === w.id;
-                const message = rowError && rowError.id === w.id ? rowError.message : null;
-                const firstOfType = index === 0 || list[index - 1]!.type !== w.type;
-                return (
-                  // Keyed by the wallet's unique id only: names/types are not
-                  // unique, so keying on them made a second row (e.g. BRI)
-                  // overwrite the first (BCA) on render.
-                  <Fragment key={w.id}>
-                    {firstOfType ? (
-                      <li
-                        aria-hidden="true"
-                        className="pt-3 pb-1 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant/70"
-                      >
-                        {WALLET_TYPE_LABEL[w.type]}
-                      </li>
-                    ) : null}
-                    <li
-                      data-testid={`fund-source-item-${w.id}`}
-                      className="flex flex-col gap-2 border-b border-outline-variant/20 py-3 last:border-0"
-                    >
-                      <div className="flex items-center gap-3">
-                        {editing ? (
-                          <input
-                            autoFocus
-                            value={editingName}
-                            maxLength={24}
-                            aria-label={`${copy.renameFundSource} ${w.name}`}
-                            aria-invalid={!!message}
-                            data-testid={`fund-source-rename-input-${w.id}`}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                void commitRename(w.id);
-                              }
-                              if (e.key === "Escape") {
-                                e.preventDefault();
-                                setEditingId(null);
-                                setRowError(null);
-                              }
-                            }}
-                            className="h-10 min-w-0 flex-1 rounded-2xl border border-outline-variant/30 bg-surface-container-high px-3 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-                          />
-                        ) : (
-                          <span className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate text-sm font-medium text-on-surface">
-                              {w.name}
-                            </span>
-                            <span className="truncate text-[11px] text-on-surface-variant/80">
-                              {`${WALLET_TYPE_LABEL[w.type]} · ${formatIDR(w.balance)} · ${used}`}
-                            </span>
-                          </span>
-                        )}
-
-                        {editing ? (
-                          <>
-                            <button
-                              type="button"
-                              aria-label={copy.save}
-                              data-testid={`fund-source-rename-save-${w.id}`}
-                              disabled={!!walletPending.byId[w.id]}
-                              aria-busy={!!walletPending.byId[w.id]}
-                              onClick={() => void commitRename(w.id)}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container/40 text-primary focus-visible:ring-2 focus-visible:ring-primary/60"
-                            >
-                              <Icon name="check" className="text-[18px]" />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label={copy.cancel}
-                              onClick={() => {
-                                setEditingId(null);
-                                setRowError(null);
-                              }}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60"
-                            >
-                              <Icon name="close" className="text-[18px]" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              aria-label={`${copy.rename} ${w.name}`}
-                              data-testid={`fund-source-rename-${w.id}`}
-                              onClick={() => {
-                                setEditingId(w.id);
-                                setEditingName(w.name);
-                                setRowError(null);
-                              }}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60"
-                            >
-                              <Icon name="edit" className="text-[18px]" />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label={`${copy.delete} ${w.name}`}
-                              data-testid={`fund-source-delete-${w.id}`}
-                              aria-disabled={used > 0}
-                              disabled={!!walletPending.byId[w.id]}
-                              aria-busy={!!walletPending.byId[w.id]}
-                              onClick={() => {
-                                setRowError(null);
-                                if (used > 0) {
-                                  setRowError({ id: w.id, message: copy.fundSourceInUse });
-                                  announce(copy.fundSourceInUse, false);
-                                  return;
-                                }
-                                setConfirmId(w.id);
-                              }}
-                              className={`flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60 ${
-                                used > 0 ? "text-on-surface-variant/40" : "text-error"
-                              }`}
-                            >
-                              <Icon name="delete" className="text-[18px]" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                      {message ? (
-                        <p
-                          role="alert"
-                          data-testid={`fund-source-error-${w.id}`}
-                          className="m-0 text-[11px] font-semibold text-error"
-                        >
-                          {message}
-                        </p>
-                      ) : null}
-                    </li>
-                  </Fragment>
-                );
-              })
+              list.map((w, index) => (
+                // Keyed by the wallet's unique id only: names/types are not
+                // unique, so keying on them made a second row (e.g. BRI)
+                // overwrite the first (BCA) on render.
+                <FundSourceRow
+                  key={w.id}
+                  wallet={w}
+                  used={walletUsage(w.id)}
+                  editing={editingId === w.id}
+                  editingName={editingId === w.id ? editingName : ""}
+                  message={rowError && rowError.id === w.id ? rowError.message : null}
+                  pending={rowPending[w.id]}
+                  copy={copy}
+                  showTypeHeader={index === 0 || list[index - 1]!.type !== w.type}
+                  onStartRename={startRename}
+                  onEditingNameChange={setEditingName}
+                  onCommitRename={handleCommitRename}
+                  onCancelRename={cancelRename}
+                  onRequestDelete={requestDelete}
+                />
+              ))
             ) : (
               <li
                 data-testid="fund-source-empty"
@@ -914,6 +825,7 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
             )}
           </ul>
         )}
+
 
         {confirmTarget ? (
           <ConfirmDeleteDialog
