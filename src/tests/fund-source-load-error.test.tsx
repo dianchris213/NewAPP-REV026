@@ -58,8 +58,8 @@ describe("Fund source load failure", () => {
     await waitFor(() =>
       expect(screen.queryByTestId("fund-source-load-error")).not.toBeInTheDocument(),
     );
-    expect(screen.getByTestId("fund-source-item-w-bca")).toBeInTheDocument();
-    expect(screen.getByTestId("fund-source-item-w-bri")).toBeInTheDocument();
+    expect(await screen.findByTestId("fund-source-item-w-bca")).toBeInTheDocument();
+    expect(await screen.findByTestId("fund-source-item-w-bri")).toBeInTheDocument();
     expect(screen.queryByTestId("fund-source-empty")).not.toBeInTheDocument();
   });
 });

@@ -16,11 +16,7 @@ import {
   type WalletType,
 } from "@/lib/app-store";
 import { isString, usePersistentState } from "@/lib/persistent-filter";
-import {
-  filterWallets,
-  parseStoredTypeFilter,
-  sanitizeFilters,
-} from "@/lib/fund-source-filter";
+import { filterWallets, parseStoredTypeFilter, sanitizeFilters } from "@/lib/fund-source-filter";
 import { FundSourceRow } from "@/components/FundSourceRow";
 import { t } from "@/lib/i18n";
 
@@ -268,7 +264,6 @@ const FS_TYPE_KEY = "tmab-fund-source-type";
  */
 const isTypeFilter = (value: unknown): value is WalletType | "all" =>
   parseStoredTypeFilter(value) === value;
-
 
 /**
  * Undo snackbar with a visible countdown. Fully keyboard driven: focus lands on
@@ -573,8 +568,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
     setStatus(copy.fundSourceLoadFailed);
   }, [hydrated, walletLoadError, copy.fundSourceLoadFailed, copy.fundSourceLoadFailedHint]);
 
-
-
   const remove = async (id: string) => {
     if (walletPending.byId[id]) return;
     const target = wallets.find((w) => w.id === id);
@@ -871,7 +864,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
             )}
           </ul>
         )}
-
 
         {confirmTarget ? (
           <ConfirmDeleteDialog
