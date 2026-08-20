@@ -15,8 +15,13 @@ import {
   type TxType,
   type WalletType,
 } from "@/lib/app-store";
-import { isOneOf, isString, usePersistentState } from "@/lib/persistent-filter";
-import { filterWallets, sanitizeFilters } from "@/lib/fund-source-filter";
+import { isString, usePersistentState } from "@/lib/persistent-filter";
+import {
+  filterWallets,
+  parseStoredTypeFilter,
+  sanitizeFilters,
+} from "@/lib/fund-source-filter";
+import { FundSourceRow } from "@/components/FundSourceRow";
 import { t } from "@/lib/i18n";
 
 export const Route = createFileRoute("/settings")({
@@ -396,6 +401,8 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
     restoreWallet,
     walletUsage,
     walletPending,
+    walletLoadError,
+    reloadWallets,
   } = useApp();
   const copy = t(language);
   const ref = useModalA11y<HTMLDivElement>(true, onClose);
