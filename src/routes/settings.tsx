@@ -256,7 +256,14 @@ function SettingsPage() {
 const WALLET_TYPES: WalletType[] = ["cash", "bank", "ewallet"];
 const FS_QUERY_KEY = "tmab-fund-source-query";
 const FS_TYPE_KEY = "tmab-fund-source-type";
-const isTypeFilter = isOneOf(["all", "cash", "bank", "ewallet"] as const);
+/**
+ * Validator for the persisted FS_TYPE_KEY value. Delegates to
+ * parseStoredTypeFilter so any invalid value — corrupt JSON, a removed type, or
+ * a changed API vocabulary — falls back to "all" instead of hiding the list.
+ */
+const isTypeFilter = (value: unknown): value is WalletType | "all" =>
+  parseStoredTypeFilter(value) === value;
+
 
 /**
  * Undo snackbar with a visible countdown. Fully keyboard driven: focus lands on
