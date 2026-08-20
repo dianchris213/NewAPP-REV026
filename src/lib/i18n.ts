@@ -1,6 +1,6 @@
 import type { Language } from "./app-store";
 
-type Dict = {
+export type Dict = {
   settingsEyebrow: string;
   settingsTitle: string;
   notSignedIn: string;
