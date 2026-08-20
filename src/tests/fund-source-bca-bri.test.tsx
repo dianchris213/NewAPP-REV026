@@ -8,7 +8,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { AppProvider, dedupeWallets, type Wallet } from "@/lib/app-store";
 import { FundSourceSheet } from "@/routes/settings";
 
-const STORAGE_KEY = "tmab-app-state";
+const STORAGE_KEY = "tmab-state-v1";
 
 const seed = (wallets: Wallet[]) =>
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ wallets }));
