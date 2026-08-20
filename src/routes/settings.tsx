@@ -407,6 +407,8 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
   const [typeFilter, setTypeFilter, resetTypeFilter, typeRestored] = usePersistentState<
     WalletType | "all"
   >(FS_TYPE_KEY, "all", isTypeFilter);
+  const rowPending = walletPending.byId;
+
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [undoTarget, setUndoTarget] = useState<Wallet | null>(null);
   const nameRef = useRef<HTMLInputElement | null>(null);
